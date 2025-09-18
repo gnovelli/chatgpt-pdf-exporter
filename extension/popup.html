@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChatGPT PDF Exporter</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="logo">📄</div>
+      <h1>ChatGPT to PDF</h1>
+    </header>
+
+    <div class="content">
+      <div class="status" id="status">
+        <p>Pronto per esportare la conversazione corrente</p>
+      </div>
+
+      <div class="actions">
+        <button id="exportBtn" class="btn-primary">
+          <span class="btn-icon">📄</span>
+          Esporta PDF
+        </button>
+        
+        <button id="previewBtn" class="btn-secondary">
+          <span class="btn-icon">👁️</span>
+          Anteprima
+        </button>
+      </div>
+
+      <div class="info" id="conversationInfo">
+        <div class="info-item">
+          <span class="label">Messaggi:</span>
+          <span class="value" id="messageCount">-</span>
+        </div>
+        <div class="info-item">
+          <span class="label">Titolo:</span>
+          <span class="value" id="conversationTitle">-</span>
+        </div>
+      </div>
+
+      <div class="options">
+        <h3>Opzioni di esportazione</h3>
+        <label class="checkbox-label">
+          <input type="checkbox" id="includeTimestamp" checked>
+          <span class="checkmark"></span>
+          Includi timestamp
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" id="includeUrl" checked>
+          <span class="checkmark"></span>
+          Includi URL conversazione
+        </label>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <p>v1.0 - Esporta facilmente le tue conversazioni ChatGPT</p>
+    </footer>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
