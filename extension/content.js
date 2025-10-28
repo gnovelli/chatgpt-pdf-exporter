@@ -373,7 +373,7 @@ class ChatGPTExporter {
             font-size: 14px;
           }
           .message {
-            margin-bottom: 25px;
+            margin-bottom: 5px;
             page-break-inside: avoid;
           }
           .message-role {
