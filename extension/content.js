@@ -93,16 +93,12 @@ class ChatGPTExporter {
       }
     }
 
-    console.log('[ChatGPT Exporter] Trovati', messageElements.length, 'messaggi con selettore:', usedSelector);
-
     for (let index = 0; index < messageElements.length; index++) {
       const messageEl = messageElements[index];
       try {
         const isUser = this.isUserMessage(messageEl);
         const messageContent = this.extractMessageContent(messageEl);
         const images = await this.extractMessageImages(messageEl);
-
-        console.log('[ChatGPT Exporter] Messaggio', index, '- isUser:', isUser, '- testo:', messageContent.text.substring(0, 50) + '...');
 
         if (messageContent.text.trim() || images.length > 0) {
           messages.push({
@@ -118,8 +114,6 @@ class ChatGPTExporter {
       }
     }
 
-    console.log('[ChatGPT Exporter] Messaggi estratti:', messages.length, '- User:', messages.filter(m => m.role === 'user').length, '- Assistant:', messages.filter(m => m.role === 'assistant').length);
-
     return {
       title: this.getConversationTitle(),
       timestamp: new Date().toLocaleString('it-IT'),
@@ -133,12 +127,10 @@ class ChatGPTExporter {
     const dataRole = element.getAttribute('data-message-author-role');
 
     if (dataRole === 'user') {
-      console.log('[ChatGPT Exporter] isUserMessage: true (dataRole=user)');
       return true;
     }
 
     if (dataRole === 'assistant') {
-      console.log('[ChatGPT Exporter] isUserMessage: false (dataRole=assistant)');
       return false;
     }
 
@@ -149,21 +141,13 @@ class ChatGPTExporter {
       () => element.querySelector('img[alt*="user" i]') !== null
     ];
 
-    const result = fallbackIndicators.some(check => {
+    return fallbackIndicators.some(check => {
       try {
         return check();
       } catch {
         return false;
       }
     });
-
-    console.log('[ChatGPT Exporter] isUserMessage (fallback):', {
-      dataRole: dataRole,
-      dataTestId: element.getAttribute('data-testid'),
-      result: result
-    });
-
-    return result;
   }
 
   extractMessageContent(element) {
