@@ -5,10 +5,12 @@ Un'estensione Chrome che ti permette di esportare facilmente le tue conversazion
 ## ✨ Funzionalità
 
 - **Esportazione PDF con un click** - Converti le tue conversazioni ChatGPT in PDF formattati professionalmente
+- **📝 Rendering Markdown completo** - Titoli, liste, grassetto, corsivo, tabelle, link e citazioni formattati correttamente
+- **💻 Syntax highlighting avanzato** - Evidenziazione della sintassi per blocchi di codice con riconoscimento automatico del linguaggio
 - **🖼️ Supporto immagini completo** - Include automaticamente tutte le immagini presenti nella conversazione
 - **📄 Layout immagini ottimizzato** - Ogni immagine viene posizionata su pagina separata a larghezza piena con margini
 - **Interfaccia intuitiva** - Bottone di esportazione integrato nell'interfaccia ChatGPT
-- **👁️ Anteprima avanzata** - Visualizza testo E immagini prima dell'esportazione
+- **👁️ Anteprima avanzata** - Visualizza testo, Markdown, codice E immagini prima dell'esportazione
 - **Opzioni personalizzabili** - Includi o escludi timestamp e URL
 - **Design responsive** - Funziona perfettamente sia su desktop che mobile
 - **Supporto multilingua** - Interfaccia in italiano con supporto per contenuti in qualsiasi lingua
@@ -73,6 +75,17 @@ Il PDF esportato include:
 - **Intestazione elegante** con titolo della conversazione
 - **Metadata** con data di esportazione, URL e conteggio messaggi
 - **Messaggi formattati** con colori distinti per utente e ChatGPT
+- **📝 Formattazione Markdown completa**:
+  - Titoli (H1, H2, H3, H4) con dimensioni e stili differenziati
+  - Liste puntate e numerate con indentazione corretta
+  - Grassetto, corsivo e citazioni (blockquote)
+  - Tabelle con bordi e header evidenziati
+  - Link cliccabili con colore blu
+- **💻 Evidenziazione sintassi**:
+  - Riconoscimento automatico del linguaggio di programmazione
+  - Colori syntax highlighting stile GitHub
+  - Blocchi di codice con sfondo grigio e bordo
+  - Codice inline con font monospace
 - **🖼️ Immagini ad alta qualità** - Tutte le immagini della conversazione incluse automaticamente
 - **📐 Layout immagini professionale** - Ogni immagine su pagina separata, larghezza piena con margini
 - **🏷️ Didascalie immagini** - Alt-text e descrizioni preservati
@@ -129,6 +142,7 @@ L'estensione gestisce automaticamente tutti i tipi di immagini presenti nelle co
 - **Compatibilità**: Chrome 88+
 - **Permessi richiesti**: activeTab, storage
 - **Host supportati**: chat.openai.com, chatgpt.com
+- **Librerie esterne**: highlight.js v11.9.0 (caricato via CDN per syntax highlighting)
 
 ## 🔄 Aggiornamenti
 

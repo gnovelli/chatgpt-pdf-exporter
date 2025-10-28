@@ -99,6 +99,7 @@ class ChatGPTExporter {
           messages.push({
             role: isUser ? 'user' : 'assistant',
             content: messageContent.text,
+            html: messageContent.html,
             images: images,
             index: index
           });
@@ -137,6 +138,7 @@ class ChatGPTExporter {
   extractMessageContent(element) {
     const result = {
       text: '',
+      html: '',
       images: []
     };
 
@@ -166,33 +168,44 @@ class ChatGPTExporter {
     for (const selector of contentSelectors) {
       const contentEl = element.querySelector(selector);
       if (contentEl) {
-        // Crea una copia dell'elemento per rimuovere le immagini dal testo
-        const textContent = contentEl.cloneNode(true);
-        const imgElements = textContent.querySelectorAll('img');
+        // Crea una copia dell'elemento per rimuovere le immagini
+        const clonedContent = contentEl.cloneNode(true);
+        const imgElements = clonedContent.querySelectorAll('img');
         imgElements.forEach(img => {
           const placeholder = document.createElement('span');
           placeholder.textContent = '[IMMAGINE]';
           img.parentNode.replaceChild(placeholder, img);
         });
-        
-        result.text = this.cleanContent(textContent.innerText || textContent.textContent || '');
+
+        // Estrai sia HTML che testo per compatibilità
+        result.html = this.cleanHTML(clonedContent.innerHTML);
+        result.text = this.cleanContent(clonedContent.innerText || clonedContent.textContent || '');
         break;
       }
     }
 
-    if (!result.text) {
+    if (!result.text && !result.html) {
       // Fallback
-      const textContent = element.cloneNode(true);
-      const imgElements = textContent.querySelectorAll('img');
+      const clonedContent = element.cloneNode(true);
+      const imgElements = clonedContent.querySelectorAll('img');
       imgElements.forEach(img => {
         const placeholder = document.createElement('span');
         placeholder.textContent = '[IMMAGINE]';
         img.parentNode.replaceChild(placeholder, img);
       });
-      result.text = this.cleanContent(textContent.innerText || textContent.textContent || '');
+      result.html = this.cleanHTML(clonedContent.innerHTML);
+      result.text = this.cleanContent(clonedContent.innerText || clonedContent.textContent || '');
     }
 
     return result;
+  }
+
+  cleanHTML(html) {
+    // Pulisci l'HTML da classi e attributi specifici di ChatGPT
+    return html
+      .replace(/\sclass="[^"]*"/g, '')
+      .replace(/\sdata-[a-z-]+="[^"]*"/g, '')
+      .trim();
   }
 
   cleanContent(text) {
@@ -311,13 +324,16 @@ class ChatGPTExporter {
   async generatePDF(conversation) {
     // Crea una finestra nascosta con il contenuto formattato
     const printWindow = window.open('', '_blank', 'width=800,height=600');
-    
+
     const html = `
       <!DOCTYPE html>
       <html>
       <head>
         <meta charset="UTF-8">
         <title>${conversation.title}</title>
+        <!-- Highlight.js per syntax highlighting -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
         <style>
           body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
@@ -363,7 +379,6 @@ class ChatGPTExporter {
             padding: 15px;
             border-radius: 8px;
             border-left: 4px solid #ddd;
-            white-space: pre-wrap;
           }
           .user-content {
             background: #e8f5e8;
@@ -373,6 +388,98 @@ class ChatGPTExporter {
             background: #e3f2fd;
             border-left-color: #3498db;
           }
+
+          /* Stili Markdown */
+          .message-content h1 {
+            font-size: 1.8em;
+            margin-top: 0.5em;
+            margin-bottom: 0.5em;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 0.3em;
+          }
+          .message-content h2 {
+            font-size: 1.5em;
+            margin-top: 0.5em;
+            margin-bottom: 0.4em;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 0.2em;
+          }
+          .message-content h3 {
+            font-size: 1.3em;
+            margin-top: 0.5em;
+            margin-bottom: 0.3em;
+          }
+          .message-content h4 {
+            font-size: 1.1em;
+            margin-top: 0.4em;
+            margin-bottom: 0.3em;
+          }
+          .message-content ul, .message-content ol {
+            margin: 0.8em 0;
+            padding-left: 2em;
+          }
+          .message-content li {
+            margin: 0.3em 0;
+          }
+          .message-content blockquote {
+            border-left: 4px solid #ddd;
+            margin: 1em 0;
+            padding: 0.5em 1em;
+            background: rgba(0,0,0,0.03);
+            font-style: italic;
+          }
+          .message-content p {
+            margin: 0.8em 0;
+          }
+          .message-content strong {
+            font-weight: 600;
+          }
+          .message-content em {
+            font-style: italic;
+          }
+          .message-content code {
+            background: rgba(27,31,35,0.05);
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+            font-size: 0.9em;
+          }
+          .message-content pre {
+            background: #f6f8fa;
+            padding: 12px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 1em 0;
+            border: 1px solid #e1e4e8;
+          }
+          .message-content pre code {
+            background: none;
+            padding: 0;
+            font-size: 0.85em;
+            line-height: 1.45;
+          }
+          .message-content table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1em 0;
+          }
+          .message-content th, .message-content td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+          }
+          .message-content th {
+            background: #f6f8fa;
+            font-weight: 600;
+          }
+          .message-content a {
+            color: #0366d6;
+            text-decoration: none;
+          }
+          .message-content a:hover {
+            text-decoration: underline;
+          }
+
           .message-images {
             margin-top: 15px;
           }
@@ -402,12 +509,12 @@ class ChatGPTExporter {
             font-style: italic;
           }
           @media print {
-            body { 
+            body {
               margin: 0;
               padding: 15px;
             }
-            .message { 
-              page-break-inside: avoid; 
+            .message {
+              page-break-inside: avoid;
             }
             .image-container {
               page-break-before: always;
@@ -446,17 +553,17 @@ class ChatGPTExporter {
                   ${msg.role === 'user' ? 'UTENTE' : 'CHATGPT'}
                 </div>
                 <div class="message-content ${msg.role}-content">
-                  ${msg.content}
+                  ${msg.html || msg.content}
                 </div>`;
-            
+
             // Aggiungi le immagini se presenti
             if (msg.images && msg.images.length > 0) {
               messageHtml += `<div class="message-images">`;
               msg.images.forEach((image, imgIndex) => {
                 messageHtml += `
                   <div class="image-container">
-                    <img src="${image.data}" 
-                         alt="${image.alt}" 
+                    <img src="${image.data}"
+                         alt="${image.alt}"
                          class="message-image"
                          data-width="${image.width}"
                          data-height="${image.height}" />
@@ -465,11 +572,19 @@ class ChatGPTExporter {
               });
               messageHtml += `</div>`;
             }
-            
+
             messageHtml += `</div>`;
             return messageHtml;
           }).join('')}
         </div>
+        <script>
+          // Inizializza syntax highlighting quando la pagina è caricata
+          document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('pre code').forEach((block) => {
+              hljs.highlightElement(block);
+            });
+          });
+        </script>
       </body>
       </html>
     `;

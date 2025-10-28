@@ -151,13 +151,16 @@ class PopupController {
 
   generatePreviewHTML(conversation) {
     const options = this.getExportOptions();
-    
+
     return `
       <!DOCTYPE html>
       <html lang="it">
       <head>
         <meta charset="UTF-8">
         <title>Anteprima - ${conversation.title}</title>
+        <!-- Highlight.js per syntax highlighting -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
         <style>
           body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
@@ -224,7 +227,6 @@ class PopupController {
           }
           .message-content {
             padding: 20px;
-            white-space: pre-wrap;
             background: white;
             border-left: 4px solid #ddd;
           }
@@ -236,6 +238,98 @@ class PopupController {
             border-left-color: #3498db;
             background: #f8fcff;
           }
+
+          /* Stili Markdown */
+          .message-content h1 {
+            font-size: 1.8em;
+            margin-top: 0.5em;
+            margin-bottom: 0.5em;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 0.3em;
+          }
+          .message-content h2 {
+            font-size: 1.5em;
+            margin-top: 0.5em;
+            margin-bottom: 0.4em;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 0.2em;
+          }
+          .message-content h3 {
+            font-size: 1.3em;
+            margin-top: 0.5em;
+            margin-bottom: 0.3em;
+          }
+          .message-content h4 {
+            font-size: 1.1em;
+            margin-top: 0.4em;
+            margin-bottom: 0.3em;
+          }
+          .message-content ul, .message-content ol {
+            margin: 0.8em 0;
+            padding-left: 2em;
+          }
+          .message-content li {
+            margin: 0.3em 0;
+          }
+          .message-content blockquote {
+            border-left: 4px solid #ddd;
+            margin: 1em 0;
+            padding: 0.5em 1em;
+            background: rgba(0,0,0,0.03);
+            font-style: italic;
+          }
+          .message-content p {
+            margin: 0.8em 0;
+          }
+          .message-content strong {
+            font-weight: 600;
+          }
+          .message-content em {
+            font-style: italic;
+          }
+          .message-content code {
+            background: rgba(27,31,35,0.05);
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+            font-size: 0.9em;
+          }
+          .message-content pre {
+            background: #f6f8fa;
+            padding: 12px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 1em 0;
+            border: 1px solid #e1e4e8;
+          }
+          .message-content pre code {
+            background: none;
+            padding: 0;
+            font-size: 0.85em;
+            line-height: 1.45;
+          }
+          .message-content table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1em 0;
+          }
+          .message-content th, .message-content td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+          }
+          .message-content th {
+            background: #f6f8fa;
+            font-weight: 600;
+          }
+          .message-content a {
+            color: #0366d6;
+            text-decoration: none;
+          }
+          .message-content a:hover {
+            text-decoration: underline;
+          }
+
           .preview-note {
             background: #fff3cd;
             border: 1px solid #ffeaa7;
@@ -298,12 +392,12 @@ class PopupController {
           <button class="control-btn" onclick="window.print()">🖨️ Stampa</button>
           <button class="control-btn" onclick="window.close()">✖️ Chiudi</button>
         </div>
-        
+
         <div class="container">
           <div class="preview-note">
             📋 <strong>Anteprima PDF</strong> - Questa è un'anteprima di come apparirà il tuo PDF esportato
           </div>
-          
+
           <div class="header">
             <div class="title">${conversation.title}</div>
             <div class="meta">
@@ -312,7 +406,7 @@ class PopupController {
               ${options.includeUrl ? `<span class="meta-item">🔗 ${conversation.url}</span>` : ''}
             </div>
           </div>
-          
+
           <div class="conversation">
             ${conversation.messages.map(msg => {
               let messageHtml = `
@@ -321,29 +415,37 @@ class PopupController {
                     ${msg.role === 'user' ? '👤 UTENTE' : '🤖 CHATGPT'}
                   </div>
                   <div class="message-content ${msg.role}-content">
-                    ${this.escapeHtml(msg.content)}
+                    ${msg.html || this.escapeHtml(msg.content)}
                   </div>`;
-              
+
               // Aggiungi le immagini se presenti
               if (msg.images && msg.images.length > 0) {
                 messageHtml += `<div class="message-images">`;
                 msg.images.forEach((image, imgIndex) => {
                   messageHtml += `
                     <div class="image-container">
-                      <img src="${image.data}" 
-                           alt="${this.escapeHtml(image.alt)}" 
+                      <img src="${image.data}"
+                           alt="${this.escapeHtml(image.alt)}"
                            class="message-image" />
                       ${image.alt ? `<div class="image-caption">${this.escapeHtml(image.alt)}</div>` : ''}
                     </div>`;
                 });
                 messageHtml += `</div>`;
               }
-              
+
               messageHtml += `</div>`;
               return messageHtml;
             }).join('')}
           </div>
         </div>
+        <script>
+          // Inizializza syntax highlighting quando la pagina è caricata
+          document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('pre code').forEach((block) => {
+              hljs.highlightElement(block);
+            });
+          });
+        </script>
       </body>
       </html>
     `;
