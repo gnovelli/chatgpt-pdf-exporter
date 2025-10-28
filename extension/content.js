@@ -66,8 +66,13 @@ class ChatGPTExporter {
         this.exportToPDF();
         sendResponse({ success: true });
       } else if (request.action === 'getConversation') {
-        const conversation = this.extractConversation();
-        sendResponse({ conversation });
+        this.extractConversation().then(conversation => {
+          sendResponse({ conversation });
+        }).catch(error => {
+          console.error('Errore nell\'estrazione:', error);
+          sendResponse({ conversation: null, error: error.message });
+        });
+        return true; // Mantieni il canale aperto per risposta asincrona
       }
     });
   }
