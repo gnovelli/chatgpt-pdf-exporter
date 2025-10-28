@@ -534,7 +534,6 @@ class ChatGPTExporter {
               padding: 15px;
             }
             .message {
-              page-break-inside: avoid;
               margin-bottom: 5px;
             }
             .image-container {
