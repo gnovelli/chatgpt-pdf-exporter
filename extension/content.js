@@ -74,19 +74,26 @@ class ChatGPTExporter {
 
   async extractConversation() {
     const messages = [];
-    
+
     // Selettori per i messaggi (possono cambiare con gli aggiornamenti di ChatGPT)
     const messageSelectors = [
       '[data-message-author-role]',
       '.group.w-full',
-      '[data-testid*="conversation-turn"]'
+      '[data-testid*="conversation-turn"]',
+      'article[data-testid^="conversation"]'
     ];
 
     let messageElements = [];
+    let usedSelector = '';
     for (const selector of messageSelectors) {
       messageElements = document.querySelectorAll(selector);
-      if (messageElements.length > 0) break;
+      if (messageElements.length > 0) {
+        usedSelector = selector;
+        break;
+      }
     }
+
+    console.log('[ChatGPT Exporter] Trovati', messageElements.length, 'messaggi con selettore:', usedSelector);
 
     for (let index = 0; index < messageElements.length; index++) {
       const messageEl = messageElements[index];
@@ -94,7 +101,9 @@ class ChatGPTExporter {
         const isUser = this.isUserMessage(messageEl);
         const messageContent = this.extractMessageContent(messageEl);
         const images = await this.extractMessageImages(messageEl);
-        
+
+        console.log('[ChatGPT Exporter] Messaggio', index, '- isUser:', isUser, '- testo:', messageContent.text.substring(0, 50) + '...');
+
         if (messageContent.text.trim() || images.length > 0) {
           messages.push({
             role: isUser ? 'user' : 'assistant',
@@ -109,6 +118,8 @@ class ChatGPTExporter {
       }
     }
 
+    console.log('[ChatGPT Exporter] Messaggi estratti:', messages.length, '- User:', messages.filter(m => m.role === 'user').length, '- Assistant:', messages.filter(m => m.role === 'assistant').length);
+
     return {
       title: this.getConversationTitle(),
       timestamp: new Date().toLocaleString('it-IT'),
@@ -121,18 +132,39 @@ class ChatGPTExporter {
     // Vari modi per identificare se è un messaggio utente
     const userIndicators = [
       () => element.getAttribute('data-message-author-role') === 'user',
-      () => element.querySelector('[data-message-author-role="user"]'),
-      () => element.classList.contains('dark:bg-gray-800'),
-      () => !element.querySelector('[data-message-author-role="assistant"]')
+      () => element.querySelector('[data-message-author-role="user"]') !== null,
+      () => element.getAttribute('data-testid')?.includes('user'),
+      () => {
+        // Cerca avatar o indicatori nell'elemento
+        const text = element.textContent || '';
+        // ChatGPT usa spesso "You" o l'avatar utente
+        const hasUserAvatar = element.querySelector('img[alt*="user" i]') !== null;
+        return hasUserAvatar;
+      },
+      () => {
+        // Controlla la posizione: spesso i messaggi utente hanno classi specifiche
+        return element.classList.contains('dark:bg-gray-800') ||
+               element.classList.contains('agent-turn') === false;
+      }
     ];
 
-    return userIndicators.some(check => {
+    const result = userIndicators.some(check => {
       try {
         return check();
       } catch {
         return false;
       }
     });
+
+    // Debug logging
+    console.log('[ChatGPT Exporter] isUserMessage check:', {
+      dataRole: element.getAttribute('data-message-author-role'),
+      dataTestId: element.getAttribute('data-testid'),
+      classes: element.className,
+      result: result
+    });
+
+    return result;
   }
 
   extractMessageContent(element) {
