@@ -129,26 +129,27 @@ class ChatGPTExporter {
   }
 
   isUserMessage(element) {
-    // Vari modi per identificare se è un messaggio utente
-    const userIndicators = [
-      () => element.getAttribute('data-message-author-role') === 'user',
+    // Controlla prima l'attributo data-message-author-role che è il più affidabile
+    const dataRole = element.getAttribute('data-message-author-role');
+
+    if (dataRole === 'user') {
+      console.log('[ChatGPT Exporter] isUserMessage: true (dataRole=user)');
+      return true;
+    }
+
+    if (dataRole === 'assistant') {
+      console.log('[ChatGPT Exporter] isUserMessage: false (dataRole=assistant)');
+      return false;
+    }
+
+    // Fallback se data-message-author-role non è presente
+    const fallbackIndicators = [
       () => element.querySelector('[data-message-author-role="user"]') !== null,
-      () => element.getAttribute('data-testid')?.includes('user'),
-      () => {
-        // Cerca avatar o indicatori nell'elemento
-        const text = element.textContent || '';
-        // ChatGPT usa spesso "You" o l'avatar utente
-        const hasUserAvatar = element.querySelector('img[alt*="user" i]') !== null;
-        return hasUserAvatar;
-      },
-      () => {
-        // Controlla la posizione: spesso i messaggi utente hanno classi specifiche
-        return element.classList.contains('dark:bg-gray-800') ||
-               element.classList.contains('agent-turn') === false;
-      }
+      () => element.getAttribute('data-testid')?.includes('user') === true,
+      () => element.querySelector('img[alt*="user" i]') !== null
     ];
 
-    const result = userIndicators.some(check => {
+    const result = fallbackIndicators.some(check => {
       try {
         return check();
       } catch {
@@ -156,11 +157,9 @@ class ChatGPTExporter {
       }
     });
 
-    // Debug logging
-    console.log('[ChatGPT Exporter] isUserMessage check:', {
-      dataRole: element.getAttribute('data-message-author-role'),
+    console.log('[ChatGPT Exporter] isUserMessage (fallback):', {
+      dataRole: dataRole,
       dataTestId: element.getAttribute('data-testid'),
-      classes: element.className,
       result: result
     });
 
