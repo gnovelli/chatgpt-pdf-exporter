@@ -530,6 +530,7 @@ class ChatGPTExporter {
             }
             .message {
               page-break-inside: avoid;
+              margin-bottom: 5px;
             }
             .image-container {
               page-break-before: always;
